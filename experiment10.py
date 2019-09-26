@@ -171,7 +171,7 @@ def train(model, optimizer, scheduler, criterion, trainloader, valloader, testlo
 		model.train()
 		loss_meter, acc_meter, time_meter = AverageMeter(), AverageMeter(), AverageMeter()
 		for j, (x, y) in enumerate(trainloader):
-			t1, it = time.time(), it + 1
+			t2, it = time.time(), it + 1
 			x, y = x.to(device), y.to(device)
 			optimizer.zero_grad()
 			out, rs, xs = model(x)
@@ -181,7 +181,7 @@ def train(model, optimizer, scheduler, criterion, trainloader, valloader, testlo
 				torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
 			optimizer.step()
 			_, pred = torch.max(out.data, 1)
-			update_meters(y = y, pred = pred, loss = loss.item(), loss_meter = loss_meter, acc_meter = acc_meter, t = time.time() - t1, time_meter = time_meter)
+			update_meters(y = y, pred = pred, loss = loss.item(), loss_meter = loss_meter, acc_meter = acc_meter, t = time.time() - t2, time_meter = time_meter)
 			if uzawa_steps > 0 and it % uzawa_steps == 0:
 				out, rs, xs = model(x)
 				lambdaloss += tau * criterion(out, y).item()
@@ -194,8 +194,8 @@ def train(model, optimizer, scheduler, criterion, trainloader, valloader, testlo
 		val_loss_, val_acc_ = validate(model, criterion, optimizer, valloader, lambdatransport, lambdaloss)
 		val_loss.append(val_loss_)
 		val_acc.append(val_acc_)
-		t2 = time.time()
-		print('Epoch {}/{} over | Val acc {:.4f} Epoch time {:.4f}s Total time {:.4f}s'.format(e + 1, nepochs, val_acc_, t2 - t1, t2 - t0))
+		t3 = time.time()
+		print('Epoch {}/{} over | Val acc {:.4f} Epoch time {:.4f}s Total time {:.4f}s'.format(e + 1, nepochs, val_acc_, t3 - t1, t3 - t0))
 		if e > 3 and val_acc[-1] > target_acc and val_acc[-2] > target_acc and val_acc[-3] > target_acc:
 			break
 	test_loss, test_acc, test_transport = test(model, criterion, optimizer, testloader, decoder, mean, std, lambdatransport, lambdaloss, e, folder)
@@ -251,7 +251,6 @@ def test(model, criterion, optimizer, testloader, decoder, mean, std, lambdatran
 					Visualization(emb, y_np, convex_hulls, ellipses, nh, os.path.join(folder, 'tsne-epoch{}-block{}.png'.format(e, k))) 
 	ratios, forcings, cosines = get_avg(rat_meters, nblocks), get_avg(for_meters, nblocks), get_avg(cos_meters, nblocks)
 	np.save(os.path.join(folder, 'clinps.npy'), clinps)
-	print(clinpsavg, clinpsavg.shape)
 	plot_arrays(ratios, cosines, forcings, distances, nblocks, e, folder)
 	return loss_meter.avg, acc_meter.avg, trs_meter.avg
 
