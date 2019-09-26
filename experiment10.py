@@ -186,7 +186,7 @@ def train(model, optimizer, scheduler, criterion, trainloader, valloader, testlo
 				out, rs, xs = model(x)
 				lambdaloss += tau * criterion(out, y).item()
 			if j % 100 == 0 :
-				metrics = (e + 1, nepochs, j + 1, len(trainloader), lambdaloss, loss_meter.avg, acc_meter.avg, time_meter.avg, lambdaloss)
+				metrics = (e + 1, nepochs, j + 1, len(trainloader), lambdaloss, loss_meter.avg, acc_meter.avg, time_meter.avg)
 				print('Epoch {}/{} Batch {}/{} | Lambda loss {:.4f} Train loss {:.4f} Train acc {:.4f} Avg batch time {:.4f}s'.format(*metrics))
 		scheduler.step()
 		train_loss.append(loss_meter.avg)
